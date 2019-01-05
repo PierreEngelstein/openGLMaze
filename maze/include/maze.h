@@ -62,6 +62,7 @@ class Maze
                 int getTabIndex2D(int i, int j);
                 int getTabIndex(int index);
                 void setTabIndex(int index, int value);
+                void setStartPos(int x, int y);
                 std::map<int,int> doors;  //Position in array // id of corresponding key
                 std::map<int,int> keys;   //Position in array // id of this key
         private:
@@ -109,6 +110,8 @@ class Maze
                 GLuint textureKey;
                 GLuint textureHeart;
                 GLuint textureVoid;
+                GLuint textureCheckpointValid;
+                GLuint textureCheckpointNoValid;
                 /* The maze itself, each block being described as an integer */
                 int tab[MAXCAP];
         protected:

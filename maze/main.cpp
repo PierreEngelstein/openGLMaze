@@ -39,6 +39,9 @@ char helpText[256];
 char lifeText[256];
 /* The list of all keys of the player */
 std::vector<int> keys;
+std::vector<int> saveKeys;
+int saveStartX = -1;
+int saveStartY = -1;
 
 /* Draws the player at the correct position on the maze */
 void drawSolv(int posX, int posY, float squareSize, float playerSize)
@@ -103,15 +106,25 @@ void checkIfPlayerHasKey(int playerPos)
 }
 
 /* Creates a new level from the levelIndicator */
-void startLevel()
+void startLevel(bool isNew)
 {
         level = Maze();
         level.init();
         sprintf(levelName, "res/maze%d.png", levelIndicator);
+        if(!isNew)
+        {
+                keys = saveKeys;
+                level.setStartPos(saveStartX, saveStartY);
+        }else
+        {
+                saveStartX = -1;
+                saveStartY = -1;
+                level.setStartPos(-1, -1);
+        }
         level.loadMaze(levelName); //Load the maze from the image (.png) given
         /* Setup the player initial position */
         playerPosX = level.getStartPosX();
-        playerPosY = level.getStartPosY();
+        playerPosY = level.getStartPosY(); 
         /* Discovers 8 blocks around the player to give him a start */
         level.discover(playerPosY, playerPosX);
         printf("Level with width=%d; height=%d\n", level.getWidth(), level.getHeight());
@@ -156,7 +169,7 @@ void checkPlayerCurrentPos()
                         levelIndicator++;
                         sprintf(helpText, "Jumped to level %d !", levelIndicator);
                         keys.clear();
-                        startLevel();
+                        startLevel(true);
                         glutPostRedisplay();
                         break;
                 case 14: /* Chest where it adds one heart to the player */
@@ -176,8 +189,7 @@ void checkPlayerCurrentPos()
                         break;
                 case 21: /* The void : the player loses one heart, all his keys and goes back to the start */
                         sprintf(helpText, "You felt into the void ! The anger of Daedalus sends you back to the start !");
-                        startLevel();
-                        keys.clear();
+                        startLevel(false);
                         playerLife--;
                         glutPostRedisplay();
                         break;
@@ -191,6 +203,20 @@ void checkPlayerCurrentPos()
                         glutDisplayFunc(endDisplayFunc);
                         glutKeyboardFunc(endKeyboardFunc);
                         glutPostRedisplay();
+                        break;
+                case 28: /* A valid checkpoint : save the current state of the player */
+                        level.setTabIndex(playerPosY + (playerPosX) * level.getWidth(), 29);
+                        saveStartX = playerPosX;
+                        saveStartY = playerPosY;
+                        saveKeys = keys;
+                        printf("Saved the game to %d %d\n", saveStartX, saveStartY);
+                        sprintf(helpText, "Saved your game !");
+                        glutPostRedisplay();
+                        break;
+                case 29: /* A non valid checkpoint */
+                        sprintf(helpText, "Already took this checkpoint !");
+                        glutPostRedisplay();
+                        break;
                 case 11: /* Add a key to player's backpack (only if he does not have it) */
                         std::vector<int>::iterator it = std::find(keys.begin(), keys.end(), level.keys[playerPosY + (playerPosX) * level.getWidth()]);
                         if (it != keys.end())
@@ -327,7 +353,7 @@ void startKeyboardFunc(unsigned char key, int x, int y)
                         printf("Starting the game !\n");
                         /* Level initialisation */
                         levelIndicator = 0;
-                        startLevel();
+                        startLevel(true);
                         /* Set the main keyboard and display func for the game */
                         glutKeyboardFunc(keyboardFunc);
                         glutDisplayFunc(displayFunc);

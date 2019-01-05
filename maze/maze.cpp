@@ -19,6 +19,8 @@ Maze::Maze()
         textureHeart = 0;
         textureKey = 0;
         textureVoid = 0;
+        textureCheckpointValid = 0;
+        textureCheckpointNoValid = 0;
 }
 
 void Maze::init()
@@ -33,6 +35,8 @@ void Maze::init()
         texture("res/heart.png", &textureHeart);
         texture("res/key.png", &textureKey);
         texture("res/void.png", &textureVoid);
+        texture("res/checkpoint_valid.png", &textureCheckpointValid);
+        texture("res/checkpoint_novalid.png", &textureCheckpointNoValid);
 }
 
 int Maze::countNbPathAround(int x, int y)
@@ -104,8 +108,11 @@ int Maze::loadMaze(const char *filename)
                         {
                                 if(r == 250 && g == 250 && b == 250) //Spawn player
                                 {
-                                        startPosY = j;
-                                        startPosX = i;
+                                        if(startPosX == -1 && startPosY == -1)
+                                        {
+                                                startPosY = j;
+                                                startPosX = i;
+                                        }
                                         printf("Spawned player at %d %d\n", startPosX, startPosY);
                                         tab[j+ i*width]=3;
                                 }else if(r == 200 && g == 200 && b == 200) // A stair
@@ -146,6 +153,8 @@ int Maze::loadMaze(const char *filename)
                                         tab[j+ i*width]=24;
                                 else if(r == 25 && g == 25 && b == 25) //The end of the game
                                         tab[j + i * width] = 27;
+                                else if(r == 80 && g == 80 && b == 80) //A checkpoint
+                                        tab[j + i * width] = 30;
                                 else
                                         tab[j+ i*width]=2; //A path
                         }
@@ -202,6 +211,12 @@ void Maze::draw(GLdouble squareSize)
                                 case 22:
                                         texture = textureHeart;
                                         break;
+                                case 28:
+                                        texture = textureCheckpointValid;
+                                        break;
+                                case 29:
+                                        texture = textureCheckpointNoValid;
+                                        break;
                                 default:
                                         texture = 0;
                                         break;
@@ -224,7 +239,7 @@ void Maze::discover(int x, int y)
                         {
                                 //If the block was not discovered before, unveil it
                                 if(tab[j+i*width]==2 || tab[j+i*width]==3 || tab[j+i*width] ==  6 || tab[j+i*width] ==  9 || tab[j+i*width] ==  10 || tab[j+i*width] ==  13 || tab[j+i*width] ==  16 || tab[j+i*width] ==  17
-                                || tab[j+i*width] ==  20 || tab[j+i*width] ==  23 || tab[j+i*width] ==  24 || tab[j+i*width] ==  27)
+                                || tab[j+i*width] ==  20 || tab[j+i*width] ==  23 || tab[j+i*width] ==  24 || tab[j+i*width] ==  27 || tab[j+i*width] ==  30)
                                 {
                                         tab[j+i*width] -= 2;
                                 }
@@ -236,7 +251,7 @@ void Maze::discover(int x, int y)
 void Maze::DiscoverZone(int x, int y)
 {
         int size=rand()%(width/8);
-        printf("Discovering a zone of %d by %d", size, size);
+        // printf("Discovering a zone of %d by %d", size, size);
         for(int i = y - size; i <= y + size; i++)
         {
                 for(int j = x - size; j <= x + size; j++)
@@ -245,7 +260,7 @@ void Maze::DiscoverZone(int x, int y)
                         {
                                 //If the block was not discovered before, unveil it
                                 if(tab[j+i*width]==2 || tab[j+i*width]==3 || tab[j+i*width] ==  6 || tab[j+i*width] ==  9 || tab[j+i*width] ==  10 || tab[j+i*width] ==  13 || tab[j+i*width] ==  16 || tab[j+i*width] ==  17
-                                || tab[j+i*width] ==  20 || tab[j+i*width] ==  23 || tab[j+i*width] ==  24 || tab[j+i*width] ==  27)
+                                || tab[j+i*width] ==  20 || tab[j+i*width] ==  23 || tab[j+i*width] ==  24 || tab[j+i*width] ==  27 || tab[j+i*width] ==  30)
                                 {
                                         tab[j+i*width] -= 2;
                                 }
@@ -332,6 +347,11 @@ int Maze::getStartPosX()
 int Maze::getStartPosY()
 {
         return startPosY;
+}
+void Maze::setStartPos(int x, int y)
+{
+        startPosX = x;
+        startPosY = y;
 }
 int Maze::getTabIndex2D(int i, int j)
 {
